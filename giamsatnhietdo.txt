@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Giám sát nhiệt độ có biểu đồ</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 30px;
+      background: #f0f4f8;
+    }
+    .temp-display {
+      font-size: 3em;
+      margin: 20px 0;
+      padding: 20px;
+      border-radius: 10px;
+      display: inline-block;
+      background-color: #4caf50;
+      color: white;
+      min-width: 150px;
+      transition: background-color 0.5s;
+    }
+    .warning {
+      background-color: #e53935 !important;
+    }
+    button {
+      font-size: 1.2em;
+      padding: 10px 25px;
+      border: none;
+      border-radius: 5px;
+      background-color: #1976d2;
+      color: white;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      margin-bottom: 30px;
+    }
+    button:hover {
+      background-color: #1565c0;
+    }
+    #chart-container {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>Giám sát nhiệt độ có biểu đồ</h1>
+  <div id="temperature" class="temp-display">-- °C</div>
+  <br />
+  <button id="updateBtn">Cập nhật nhiệt độ</button>
+
+  <div id="chart-container">
+    <canvas id="tempChart"></canvas>
+  </div>
+
+  <!-- Thêm thư viện Chart.js từ CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script>
+    const tempEl = document.getElementById('temperature');
+    const btn = document.getElementById('updateBtn');
+    const ctx = document.getElementById('tempChart').getContext('2d');
+
+    // Dữ liệu biểu đồ ban đầu
+    const data = {
+      labels: [], // Thời gian
+      datasets: [{
+        label: 'Nhiệt độ (°C)',
+        data: [],
+        fill: false,
+        borderColor: 'rgb(75, 192, 192)',
+        tension: 0.3
+      }]
+    };
+
+    const config = {
+      type: 'line',
+      data: data,
+      options: {
+        responsive: true,
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Thời gian'
+            }
+          },
+          y: {
+            min: 10,
+            max: 50,
+            title: {
+              display: true,
+              text: 'Nhiệt độ (°C)'
+            }
+          }
+        }
+      }
+    };
+
+    const tempChart = new Chart(ctx, config);
+
+    function getRandomTemp() {
+      return (20 + Math.random() * 20).toFixed(1);
+    }
+
+    function updateTemperature() {
+      const temp = getRandomTemp();
+      tempEl.textContent = temp + ' °C';
+
+      if (temp > 30) {
+        tempEl.classList.add('warning');
+      } else {
+        tempEl.classList.remove('warning');
+      }
+
+      // Thêm dữ liệu mới vào biểu đồ
+      const now = new Date();
+      const timeLabel = now.getHours().toString().padStart(2, '0') + ':' +
+                        now.getMinutes().toString().padStart(2, '0') + ':' +
+                        now.getSeconds().toString().padStart(2, '0');
+
+      data.labels.push(timeLabel);
+      data.datasets[0].data.push(temp);
+
+      // Giới hạn dữ liệu trong biểu đồ chỉ giữ 10 điểm mới nhất
+      if (data.labels.length > 10) {
+        data.labels.shift();
+        data.datasets[0].data.shift();
+      }
+
+      tempChart.update();
+    }
+
+    btn.addEventListener('click', updateTemperature);
+
+    setInterval(updateTemperature, 5000);
+    updateTemperature();
+  </script>
+</body>
+</html>
